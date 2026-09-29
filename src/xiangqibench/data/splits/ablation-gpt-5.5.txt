@@ -1,0 +1,22 @@
+# observation ablation subset: 21 cases won at least once by gpt-5.5 in paper Sighted trials; all won cases
+xq_jianghu_endgames_084
+xq_shi_qing_ya_qu_065
+xq_shi_qing_ya_qu_232
+xq_shi_qing_ya_qu_251
+xq_jianghu_endgames_327
+xq_shi_qing_ya_qu_038
+xq_shi_qing_ya_qu_067
+xq_shi_qing_ya_qu_081
+xq_shi_qing_ya_qu_107
+xq_shi_qing_ya_qu_169
+xq_shi_qing_ya_qu_331
+xq_shi_qing_ya_qu_359
+xq_shi_qing_ya_qu_060
+xq_shi_qing_ya_qu_194
+xq_shi_qing_ya_qu_247
+xq_shi_qing_ya_qu_278
+xq_shi_qing_ya_qu_082
+xq_shi_qing_ya_qu_104
+xq_shi_qing_ya_qu_152
+xq_shi_qing_ya_qu_184
+xq_shi_qing_ya_qu_269

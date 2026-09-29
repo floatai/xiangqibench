@@ -1,0 +1,93 @@
+You are playing Chinese Chess (Xiangqi / 中国象棋) in BLINDFOLD mode.
+You interact with the game environment by typing commands in a terminal (see INTERACTION PROTOCOL below).
+You CANNOT see the board, FEN, or piece census at any point except the initial state. You must track the
+entire position in your own reasoning, using only the move history and the
+per-move diffs you are given. Your memory and mental board-tracking ARE the test.
+
+================================================================================
+1. GAME RULES
+================================================================================
+
+Board: 9 columns (a–i) × 10 rows (0–9), divided by a River (楚河汉界).
+Red occupies rows 0–4 (bottom), Black occupies rows 5–9 (top).
+Each side has a Palace — the 3×3 area around the King.
+
+Pieces and Movement:
+  King (帅/将)      — One step orthogonally, confined to the Palace. The two
+                      Kings may NEVER face on the same file with nothing between
+                      them (Flying General / 对面笑).
+  Advisor (仕/士)   — One step diagonally, confined to the Palace.
+  Elephant (相/象)  — Exactly two steps diagonally ("田"). CANNOT cross the
+                      River. Blocked if the midpoint is occupied (塞象眼).
+  Horse (马)        — "L" shape ("日"). Blocked if the first orthogonal step is
+                      occupied (蹩马腿).
+  Rook (车)         — Any distance orthogonally. Cannot jump.
+  Cannon (炮)       — Moves like a Rook; to CAPTURE it must jump exactly one
+                      piece (the platform / 炮架).
+  Pawn (兵/卒)      — Before the River: one step forward only. After crossing:
+                      one step forward OR sideways. Never backward.
+
+Win / Loss / Draw:
+  - Checkmate (将死): opponent's King in check with no legal escape → you win.
+  - Stalemate (困毙): opponent has no legal move but is NOT in check → opponent
+    LOSES (unlike Western chess).
+  - Perpetual check (长将): checking 3+ times in a row → the checking side loses.
+  - Threefold repetition → draw (or the aggressor loses).
+  - Move limit: exceeding {max_turns} half-moves → draw.
+
+================================================================================
+2. COORDINATES & INITIAL POSITION
+================================================================================
+
+Columns a–i (left→right), rows 0–9 (bottom→top). Red's back rank is row 0,
+Black's back rank is row 9. Moves are 4-char ICCS, e.g. 'h2e2'.
+
+Red:   King e0 | Advisors d0 f0 | Elephants c0 g0 | Horses b0 h0 | Rooks a0 i0
+       Cannons b2 h2 | Pawns a3 c3 e3 g3 i3
+Black: King e9 | Advisors d9 f9 | Elephants c9 g9 | Horses b9 h9 | Rooks a9 i9
+       Cannons b7 h7 | Pawns a6 c6 e6 g6 i6
+
+================================================================================
+3. CONSTRAINTS
+================================================================================
+
+- You have NO board viewer, NO simulator, and NO legal-move list. The ONLY
+  game-changing action is `move`. (You may also `think` to record reasoning.)
+- After each move you get only a diff: what moved/was captured, check, material.
+  After the opponent moves you get the same diff for their move — never a board.
+- If you make {max_invalid} illegal moves in a single turn, you FORFEIT.
+- You cannot see your opponent's reasoning — only their moves.
+
+
+================================================================================
+INTERACTION PROTOCOL (read carefully)
+================================================================================
+
+You control the game through a command-line interface, like a terminal.
+This is the ONLY way you may act. Ignore any mention elsewhere of JSON tool
+calls or `function(args)` syntax — in this game you act by typing commands.
+
+On each of your turns:
+  1. Think out loud in plain text (your private reasoning — the opponent never
+     sees it).
+  2. Then issue EXACTLY ONE command inside a fenced code block:
+
+```bash
+move h2e2
+```
+
+The environment runs your command and replies with terminal output (prefixed
+with `$ <command>`), then it is your turn again until you end it with a move.
+
+BLINDFOLD: there is no board viewer, simulator, or legal-move list. Track the position from the move history and per-move diffs alone. Repeated illegal moves in one turn forfeit the game.
+
+Available commands (one per block):
+  move <from><to>            Play a move in ICCS format (e.g. `move h2e2`). ENDS your turn.
+  think <reasoning>          Record private reasoning (does NOT end your turn).
+  history                    Show the move history.
+  resign                     Forfeit the game. ENDS your turn.
+
+Rules:
+  • Put your command in a ```bash``` block. Only the LAST block is executed.
+  • If you emit no command block, you will be asked again.
+  • Illegal or unknown commands are rejected; repeated invalid commands in a single turn will be resolved against you.

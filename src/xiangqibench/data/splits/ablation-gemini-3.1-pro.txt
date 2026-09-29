@@ -1,0 +1,21 @@
+# observation ablation subset: 20 cases won at least once by gemini-3.1-pro in paper Sighted trials; quota {5: 3, 7: 6, 9: 5, 11: 6}; seed 20260926
+xq_shi_qing_ya_qu_012
+xq_shi_qing_ya_qu_232
+xq_shi_qing_ya_qu_251
+xq_jianghu_endgames_327
+xq_shi_qing_ya_qu_038
+xq_shi_qing_ya_qu_081
+xq_shi_qing_ya_qu_083
+xq_shi_qing_ya_qu_263
+xq_shi_qing_ya_qu_268
+xq_shi_qing_ya_qu_074
+xq_shi_qing_ya_qu_093
+xq_shi_qing_ya_qu_172
+xq_shi_qing_ya_qu_222
+xq_shi_qing_ya_qu_262
+xq_shi_qing_ya_qu_050
+xq_shi_qing_ya_qu_092
+xq_shi_qing_ya_qu_143
+xq_shi_qing_ya_qu_163
+xq_shi_qing_ya_qu_261
+xq_shi_qing_ya_qu_266

@@ -1,0 +1,63 @@
+# XiangqiBench run configuration.
+# Every value can be overridden on the command line (see `xiangqibench run -h`).
+# ${VAR} and ${VAR:-default} are read from the environment; keep API keys there.
+
+# Evaluation mode. Paper settings: sighted | restricted.
+# Observation-ablation arms: S | S-NT | R-T | R.  List them with `xiangqibench modes`.
+mode: sighted
+
+model:
+  name: gpt-5.5                 # label used in records and on the leaderboard
+  provider: openai              # openai | azure | openai-responses | anthropic
+  model: gpt-5.5                # model id sent to the API (defaults to name)
+  api_key_env: OPENAI_API_KEY
+  # base_url: https://openrouter.ai/api/v1     # any OpenAI-compatible endpoint
+  # max_tokens: 128000          # largest output length the endpoint accepts
+  # reasoning_effort: high      # sent only when set
+  # temperature: 1.0            # sent only when set; endpoint default otherwise
+  # extra_body: {}              # provider-specific request fields
+  timeout: 600
+  max_retries: 2
+
+# Other providers:
+#
+# model:                              # self-hosted vLLM / SGLang
+#   name: qwen3-235b
+#   provider: openai
+#   base_url: http://localhost:8000/v1
+#   api_key_env: VLLM_API_KEY
+#
+# model:                              # Azure OpenAI
+#   name: gpt-5.5
+#   provider: azure
+#   model: my-gpt55-deployment
+#   base_url: https://my-resource.openai.azure.com
+#   api_version: 2024-12-01-preview
+#   api_key_env: AZURE_OPENAI_API_KEY
+#
+# model:                              # Anthropic
+#   name: claude-opus-4.7
+#   provider: anthropic
+#   model: claude-opus-4-7
+#   api_key_env: ANTHROPIC_API_KEY
+#   max_tokens: 64000
+#   prompt_cache: true
+
+defender:
+  backend: pikafish             # pikafish (benchmark) | rule (no engine; not comparable)
+  engine_path: ${PIKAFISH_PATH:-}
+  depth: 18
+
+cases:
+  split: main                   # main (119 cases) | ablation-gemini-3.1-pro | ablation-gpt-5.5
+  # ids: [xq_shi_qing_ya_qu_014]
+  # limit: 5
+
+run:
+  trials: 3                     # scored trials per case
+  workers: 4
+  output_dir: runs
+
+# Changing any budget marks results as non-standard.
+# budgets:
+#   max_turns: 40

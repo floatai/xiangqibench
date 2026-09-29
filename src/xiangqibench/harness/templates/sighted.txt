@@ -1,0 +1,142 @@
+You are solving a Chinese Chess (Xiangqi / 中国象棋) ENDGAME.
+
+This is NOT the opening — it is a sharp endgame position and it is YOUR move.
+You are the side to move. Your task is to find the precise forcing sequence
+that CHECKMATES the opponent (将死). Play exactly: in these positions a single
+slack, non-forcing move can let the opponent escape or launch a decisive
+counterattack. There is no draw available — play to win by checkmate.
+
+================================================================================
+1. GAME RULES
+================================================================================
+
+Board: 9 columns (a–i) × 10 rows (0–9), divided by a River (楚河汉界).
+Red occupies rows 0–4 (bottom), Black occupies rows 5–9 (top).
+Each side has a Palace — the 3×3 area around the King.
+
+Pieces and Movement:
+  K/k  King (帅/将)      — One step orthogonally, confined to the Palace. The two
+                           Kings may NEVER face each other on the same column with
+                           no piece between them (Flying General / 对面笑).
+  A/a  Advisor (仕/士)    — One step diagonally, confined to the Palace.
+  B/b  Elephant (相/象)   — Two steps diagonally ("田"). Cannot cross the River.
+                           Blocked if the midpoint is occupied (塞象眼).
+  N/n  Horse (马)         — "L" shape (一步直 + 一步斜, "日"). Blocked if the first
+                           orthogonal square is occupied (蹩马腿).
+  R/r  Rook (车)          — Any distance orthogonally; cannot jump.
+  C/c  Cannon (炮)        — Moves like a Rook; to CAPTURE it must jump exactly one
+                           piece (the "cannon platform" / 炮架).
+  P/p  Pawn (兵/卒)       — Forward one step; after crossing the River also sideways.
+                           Never backward.
+
+Win / Loss:
+  - Checkmate (将死): opponent's King is in check with no legal escape → you WIN.
+  - Stalemate (困毙): opponent has no legal move (even if not in check) → opponent
+    LOSES (unlike Western chess).
+  - Move limit: if the game runs past {max_turns} half-moves it is scored as a
+    draw (i.e. you failed to convert) — so do not dawdle.
+
+================================================================================
+2. MOVE FORMAT (ICCS)
+================================================================================
+
+Each move is exactly 4 characters: <from_col><from_row><to_col><to_row>
+  Columns: a b c d e f g h i  (left → right)
+  Rows:    0 1 2 3 4 5 6 7 8 9 (bottom → top, Red's back rank = 0)
+Examples: h2e2 (cannon h2→e2), b0c2 (horse b0→c2), a0a1 (rook a0→a1).
+
+================================================================================
+3. BOARD STATE — WHAT TO TRUST
+================================================================================
+
+You get THREE views; trust them in this order:
+  1. PIECE POSITIONS census — coordinate-keyed ground truth of every piece. This
+     is authoritative; do NOT rely on memory (a common failure is misreading a
+     glyph, e.g. confusing 将 with 象).
+  2. FEN string — compact full-board encoding (ranks listed row 9 → row 0;
+     N=Horse, B=Elephant).
+  3. ASCII board — Chinese glyphs; useful for intuition but easy to misread.
+Reconcile your mental model with the census/FEN before every move.
+
+================================================================================
+4. AVAILABLE TOOLS
+================================================================================
+
+Each turn you MUST eventually call `move` (or `resign`) to end your turn. Before
+that you SHOULD `think`, and you MAY use auxiliary tools:
+
+  think(reasoning)      — **ALWAYS call this first.** Record your analysis of the
+                          mating idea, candidate forcing moves, and the lines you
+                          calculated. Does not end your turn.
+  move(from_to)         — Play a move. Ends your turn.
+  resign()              — Give up (you lose). Only if the position is truly lost.
+  view_board()          — Show the board with FEN (max {max_view_board}/turn).
+  simulate(moves)       — Test a hypothetical line WITHOUT affecting the real
+                          game. YOU supply both sides: [your_move, assumed_reply,
+                          your_move, ...]. Each entry is one half-move. Returns per
+                          ply: what moved/captured, check, FEN, and the number of
+                          legal replies. Max {max_simulate_steps} half-moves,
+                          {max_simulate}/turn. Use it to verify a forced mate
+                          before committing.
+  get_legal_moves()     — List all legal moves in the current position.
+  get_history()         — Show the full move history.
+
+Recommended flow: think → (simulate to verify the mate) → move
+
+After each `move` the environment returns objective facts only (it never tells
+you who is winning — assessing the position is YOUR job): what moved/captured,
+whether it is check, material balance, the updated FEN, and the legal moves for
+the next position.
+
+================================================================================
+5. CONSTRAINTS
+================================================================================
+
+  • You can ONLY act via the provided commands/tools; plain text is rejected.
+  • You MUST call `think` BEFORE `move`.
+  • A turn ends only on `move` or `resign`. Auxiliary tools do not end the turn.
+  • If you exceed {max_actions} actions in a turn without moving, a move is
+    forced on your behalf.
+  • Illegal moves are rejected with the legal-move list; choose a legal move.
+  • Keep the attack forcing. Quiet moves usually throw away the win.
+
+
+================================================================================
+INTERACTION PROTOCOL (read carefully)
+================================================================================
+
+You control the game through a command-line interface, like a terminal.
+This is the ONLY way you may act. Ignore any mention elsewhere of JSON tool
+calls or `function(args)` syntax — in this game you act by typing commands.
+
+On each of your turns:
+  1. Think out loud in plain text (your private reasoning — the opponent never
+     sees it).
+  2. Then issue EXACTLY ONE command inside a fenced code block:
+
+```bash
+move h2e2
+```
+
+The environment runs your command and replies with terminal output (prefixed
+with `$ <command>`), then it is your turn again until you end it with a move.
+
+Available commands (one per block):
+  move <from><to>            Play a move in ICCS format (e.g. `move h2e2`). ENDS your turn.
+  simulate <m1> <m2> ...     Forward-test a hypothetical line you supply for BOTH
+                             sides: [your move, assumed opponent move, ...]
+                             (e.g. `simulate h2e2 h9g7 b0c2`).
+  view_board                 Show the board, FEN, and the ground-truth piece list.
+  legal_moves                List all legal moves right now.
+  think <reasoning>          Record private reasoning (does NOT end your turn).
+  history                    Show the move history.
+  resign                     Forfeit the game. ENDS your turn.
+
+Rules:
+  • Put your command in a ```bash``` block. Only the LAST block is executed.
+  • One command per turn-step. To look before you leap, send `view_board` or
+    `simulate ...` first, read the output, then send `move ...`.
+  • If you emit no command block, you will be asked again.
+  • Illegal or unknown commands are rejected with the list of legal moves; keep
+    trying — you do NOT lose your turn for one mistake, but repeated invalid
+    commands in a single turn will be resolved against you.

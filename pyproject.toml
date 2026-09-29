@@ -1,0 +1,79 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "xiangqibench"
+dynamic = ["version"]
+description = "Tool-grounded xiangqi endgames for evaluating LLM agents against a Pikafish defender."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "XiangqiBench authors" }]
+keywords = ["llm", "agents", "benchmark", "evaluation", "xiangqi", "chinese-chess", "pikafish"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Games/Entertainment :: Board Games",
+]
+dependencies = [
+    "cchess>=1.25.5,<1.26",
+    "numpy>=1.24",
+    "pyyaml>=6.0",
+    "openai>=1.60",
+]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.40"]
+all = ["anthropic>=0.40"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.10", "types-PyYAML", "build>=1.2", "twine>=5"]
+
+[project.scripts]
+xiangqibench = "xiangqibench.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/floatai/xiangqibench"
+Repository = "https://github.com/floatai/xiangqibench"
+Issues = "https://github.com/floatai/xiangqibench/issues"
+Changelog = "https://github.com/floatai/xiangqibench/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/xiangqibench/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/xiangqibench"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/xiangqibench", "tests", "README.md", "CHANGELOG.md", "CITATION.cff", "LICENSE", "DATA_CARD.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["engine: requires a Pikafish binary (set PIKAFISH_PATH)"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003", "E501", "SIM105"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+[tool.mypy]
+# numpy's stubs need >= 3.12; runtime 3.10 compatibility is enforced by ruff (target py310) and CI.
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true

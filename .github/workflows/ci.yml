@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: ruff check src tests
+      - run: mypy src
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.10", "3.11", "3.12", "3.13"]
+        include:
+          - os: macos-latest
+            python: "3.12"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e ".[dev,anthropic]"
+      - run: pytest -m "not engine" --cov=xiangqibench --cov-report=term-missing
+
+  engine:
+    runs-on: ubuntu-latest
+    env:
+      PIKAFISH_REF: fd168f680e6f3501d1fe874ffb39c388af6923e6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        id: pikafish
+        with:
+          path: ~/pikafish
+          key: pikafish-${{ runner.os }}-${{ env.PIKAFISH_REF }}
+      - name: Build Pikafish
+        if: steps.pikafish.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/official-pikafish/Pikafish /tmp/Pikafish
+          git -C /tmp/Pikafish checkout "$PIKAFISH_REF"
+          make -C /tmp/Pikafish/src -j"$(nproc)" build ARCH=x86-64-avx2
+          mkdir -p ~/pikafish
+          cp /tmp/Pikafish/src/pikafish /tmp/Pikafish/src/pikafish.nnue ~/pikafish/
+      - run: pip install -e ".[dev]"
+      - run: xiangqibench doctor --engine-path ~/pikafish/pikafish
+      - run: PIKAFISH_PATH="$HOME/pikafish/pikafish" pytest -m engine
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check --strict dist/*
+      - name: Smoke-test the wheel in a clean environment
+        run: |
+          python -m venv /tmp/wheel-env
+          /tmp/wheel-env/bin/pip install dist/*.whl
+          cd /tmp
+          /tmp/wheel-env/bin/xiangqibench --version
+          /tmp/wheel-env/bin/xiangqibench modes
+          /tmp/wheel-env/bin/xiangqibench cases | tail -1
+          /tmp/wheel-env/bin/xiangqibench prompt --mode restricted > /dev/null
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

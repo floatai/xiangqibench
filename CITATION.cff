@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use XiangqiBench, please cite the paper below."
+title: "XiangqiBench"
+type: software
+authors:
+  - name: "XiangqiBench authors"
+version: 0.1.0
+date-released: 2026-09-26
+license: MIT
+repository-code: "https://github.com/floatai/xiangqibench"
+keywords:
+  - llm-agents
+  - benchmark
+  - xiangqi
+  - chinese-chess
+preferred-citation:
+  type: article
+  title: "Finding the Move Is Not Winning the Game: XiangqiBench for Closed-Loop Evaluation of LLM Agents"
+  authors:
+    - name: "XiangqiBench authors"
+  year: 2026
+  url: "https://github.com/floatai/xiangqibench"
