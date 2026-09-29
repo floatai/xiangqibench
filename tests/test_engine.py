@@ -16,7 +16,9 @@ def test_engine_is_deterministic(pikafish_path):
         first = engine.best_move(case.fen)
         assert first is not None
         assert first == engine.best_move(case.fen)
-        assert engine.info()["engine_id"]
+        info = engine.info()
+        assert info["engine_id"]
+        assert "/" not in info["engine_path"] and "/" not in (info["nnue"] or "")
 
 
 def test_unsupported_position_falls_back_to_rule(pikafish_path):

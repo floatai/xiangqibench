@@ -50,7 +50,7 @@ Full runs are configured with a single YAML file; `xiangqibench init` writes a c
 example. API keys are read from the environment, never from the file.
 
 ```yaml
-mode: restricted                # sighted | restricted | S | S-NT | R-T | R
+mode: restricted                # sighted | restricted
 model:
   name: qwen3-235b
   provider: openai              # openai | azure | openai-responses | anthropic
@@ -73,10 +73,10 @@ Command-line flags override the file, and unknown keys are rejected.
 |---|---|---|
 | `sighted` | Board, FEN, and legal moves after every ply | `view_board`, `simulate`, `get_legal_moves` |
 | `restricted` | Starting position once, then move diffs only | none |
-| `S`, `S-NT`, `R-T`, `R` | Observation ablations: state push (S/R) × tool access (T/NT) | as named |
 
-`sighted` and `restricted` are the paper's two settings. `xiangqibench prompt --mode <mode>`
-prints the exact system prompt for any mode.
+`xiangqibench prompt --mode <mode>` prints the exact system prompt. The paper's observation
+ablation adds four modes that toggle the per-ply board state and the query tools independently;
+`xiangqibench modes` lists them, and the [data card](DATA_CARD.md) describes their case splits.
 
 ### Scoring
 

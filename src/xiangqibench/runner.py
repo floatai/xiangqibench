@@ -34,7 +34,17 @@ log = logging.getLogger("xiangqibench")
 
 
 class ApiFailure(RuntimeError):
-    """Every retry of a model call failed; the trial has no chess verdict."""
+    """A model call failed after its retries; the trial has no chess verdict."""
+
+
+class ApiUnusable(RuntimeError):
+    """The endpoint rejects every request (bad key, no access, unknown model)."""
+
+
+# HTTP statuses that repeat identically on retry: the first set is a property of
+# the endpoint and stops the run, the second of the request and skips the trial.
+_FATAL_STATUS = frozenset({401, 403, 404})
+_NO_RETRY_STATUS = frozenset({400, 413, 422})
 
 
 @dataclass
@@ -71,8 +81,13 @@ def _call_with_retries(agent: Agent, messages: list[dict], attempts: int, backof
         try:
             return agent.complete(messages)
         except Exception as exc:
+            status = getattr(exc, "status_code", None)
+            if status in _FATAL_STATUS:
+                raise ApiUnusable(f"model endpoint returned HTTP {status}: {exc}") from exc
             last = exc
             log.warning("model call failed (attempt %d/%d): %s", attempt + 1, attempts, exc)
+            if status in _NO_RETRY_STATUS:
+                break
             if attempt < attempts - 1:
                 time.sleep(backoff_s * (attempt + 1))
     raise ApiFailure(str(last))
@@ -86,6 +101,7 @@ def _agent_turn(harness: GameHarness, player: str, agent: Agent, *, max_no_comma
     no_command_streak = 0
     for _ in range(max_calls):
         res = _call_with_retries(agent, messages, api_attempts, api_backoff_s)
+        harness.record.count_api_call(player, res.usage)
         raw_text = res.text or ""
         parsed = parse_action(raw_text)
         if parsed.action is None and res.reasoning:
@@ -132,8 +148,9 @@ def play_trial(
 ) -> tuple[TrialSummary, dict]:
     """Play one trial and return ``(summary, record)``.
 
-    Raises :class:`ApiFailure` if the model endpoint fails on every retry; such
-    a trial has no verdict and should not be recorded.
+    Raises :class:`ApiFailure` if a model call fails after its retries; such a
+    trial has no verdict and should not be recorded. Raises :class:`ApiUnusable`
+    if the endpoint rejects the credentials or the model outright.
     """
     budgets = dict(budgets or {})
     max_no_command = int(budgets.pop("max_no_command_per_turn", 5))

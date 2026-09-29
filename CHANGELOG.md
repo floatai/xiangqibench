@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- `max_tokens` is sent only when set; the endpoint's default applies otherwise. The Anthropic
+  provider requires it.
+- A trial that exhausts a turn's action budget without moving now scores as a fail instead of
+  being excluded. The paper's archive contains no such trial.
+- Model calls that fail with HTTP 400, 413, or 422 are not retried. HTTP 401, 403, or 404 stops
+  the run with an error instead of skipping every trial.
+
+### Fixed
+
+- `total_api_calls` and the token totals now include replies that contained no command.
+- Trial records store the engine and network file names instead of local paths.
+
 ## [0.1.0] — 2026-09-26
 
 First public release. It packages the XiangqiBench protocol, the 119 positions, the Pikafish

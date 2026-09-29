@@ -18,7 +18,7 @@ def rec(outcome, reason, winner, challenger="red"):
     (rec("challenger_loss", "forfeit_action_limit", "black"), "fail"),
     (rec("draw", "perpetual_check", "draw"), "fail"),
     (rec("turn_cap", None, None), "fail"),
-    (rec("challenger_loss", "forfeit_action_budget_exhausted", "black"), None),
+    (rec("challenger_loss", "forfeit_action_budget_exhausted", "black"), "fail"),
     (rec("api_skipped", "api_error", None), None),
     ({}, None),
 ])

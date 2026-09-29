@@ -1,9 +1,8 @@
 """Model providers.
 
-Sampling parameters (``temperature``, ``top_p``) are sent only when set in
-the model config; otherwise each endpoint uses its own defaults, as in the
-paper runs. ``max_tokens`` defaults to 524288 and should be set to the largest
-value the endpoint accepts.
+Sampling parameters (``temperature``, ``top_p``) and ``max_tokens`` are sent
+only when set in the model config; otherwise each endpoint uses its own
+defaults, as in the paper runs. The Anthropic API requires ``max_tokens``.
 """
 
 from __future__ import annotations
@@ -14,8 +13,6 @@ from typing import Any
 
 from xiangqibench.config import ConfigError, ModelConfig
 from xiangqibench.llm.base import Agent, Completion
-
-DEFAULT_MAX_TOKENS = 524288
 
 
 def _usage(prompt: int | None, completion: int | None, **extra) -> dict:
@@ -60,9 +57,8 @@ class OpenAIChatAgent:
 
     def _kwargs(self, messages: Sequence[dict]) -> dict:
         cfg = self._cfg
-        kwargs: dict = dict(model=cfg.model_id, messages=list(messages),
-                            max_tokens=cfg.max_tokens or DEFAULT_MAX_TOKENS)
-        for key in ("temperature", "top_p", "reasoning_effort"):
+        kwargs: dict = dict(model=cfg.model_id, messages=list(messages))
+        for key in ("max_tokens", "temperature", "top_p", "reasoning_effort"):
             value = getattr(cfg, key)
             if value is not None:
                 kwargs[key] = value
@@ -107,8 +103,9 @@ class OpenAIResponsesAgent:
             "content": [{"type": "output_text" if m["role"] == "assistant" else "input_text",
                          "text": m.get("content") or ""}],
         } for m in messages if m["role"] != "system"]
-        kwargs: dict = dict(model=cfg.model_id, input=items,
-                            max_output_tokens=cfg.max_tokens or DEFAULT_MAX_TOKENS)
+        kwargs: dict = dict(model=cfg.model_id, input=items)
+        if cfg.max_tokens is not None:
+            kwargs["max_output_tokens"] = cfg.max_tokens
         if instructions:
             kwargs["instructions"] = instructions
         if cfg.reasoning_effort:
@@ -140,6 +137,8 @@ class AnthropicAgent:
     def __init__(self, cfg: ModelConfig):
         import anthropic
 
+        if cfg.max_tokens is None:
+            raise ConfigError("the anthropic provider requires model.max_tokens")
         self.name = cfg.name
         self._cfg = cfg
         self._client = anthropic.Anthropic(api_key=_require_key(cfg), base_url=cfg.base_url,
@@ -155,8 +154,7 @@ class AnthropicAgent:
             convo[-1] = {"role": convo[-1]["role"], "content": [{
                 "type": "text", "text": convo[-1]["content"],
                 "cache_control": {"type": "ephemeral"}}]}
-        kwargs: dict = dict(model=cfg.model_id, messages=convo,
-                            max_tokens=cfg.max_tokens or DEFAULT_MAX_TOKENS)
+        kwargs: dict = dict(model=cfg.model_id, messages=convo, max_tokens=cfg.max_tokens)
         if system:
             kwargs["system"] = system
         for key in ("temperature", "top_p"):

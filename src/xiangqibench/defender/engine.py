@@ -130,10 +130,11 @@ class PikafishEngine:
         self._start()
 
     def info(self) -> dict:
+        """Engine identity for trial records; file names only, so shared records carry no local paths."""
         return {
-            "engine_path": self.engine_path,
+            "engine_path": os.path.basename(self.engine_path),
             "engine_id": self.engine_id,
-            "nnue": self.nnue,
+            "nnue": os.path.basename(self.nnue) if self.nnue else None,
             "nnue_sha256": file_sha256(self.nnue),
             "depth": self.depth,
             "threads": self.threads,

@@ -12,7 +12,7 @@ from xiangqibench.defender import EngineUnavailable, PikafishDefender, RuleDefen
 from xiangqibench.defender.search import best_winning_move
 from xiangqibench.llm import Completion
 from xiangqibench.modes import get_mode
-from xiangqibench.runner import play_trial, run_suite
+from xiangqibench.runner import ApiFailure, ApiUnusable, play_trial, run_suite
 from xiangqibench.scoring import load_trials, score
 
 _FEN_RE = re.compile(r"FEN: (\S+ [wb])")
@@ -35,7 +35,25 @@ class Silent:
     name = "silent"
 
     def complete(self, messages):
-        return Completion(text="I am thinking about it.")
+        return Completion(text="I am thinking about it.",
+                          usage={"prompt_tokens": 10, "completion_tokens": 2})
+
+
+class HttpError(Exception):
+    def __init__(self, status_code):
+        super().__init__(f"HTTP {status_code}")
+        self.status_code = status_code
+
+
+class Failing:
+    name = "failing"
+
+    def __init__(self, status_code):
+        self.status_code, self.calls = status_code, 0
+
+    def complete(self, messages):
+        self.calls += 1
+        raise HttpError(self.status_code)
 
 
 def short_case():
@@ -78,7 +96,19 @@ def test_no_command_forfeits_after_five_replies():
     summary, record = play_trial(case, get_mode("restricted"), Silent(), RuleDefender(case.challenger))
     assert summary.termination_reason == "forfeit_no_command"
     assert summary.status == "fail" and summary.plies == 0
-    assert record["total_api_calls"] == 1
+    assert record["total_api_calls"] == 5
+    assert record["stats"]["total_tokens"][case.challenger] == {"prompt": 50, "completion": 10}
+
+
+@pytest.mark.parametrize("status,error,calls", [
+    (401, ApiUnusable, 1), (404, ApiUnusable, 1), (400, ApiFailure, 1), (500, ApiFailure, 3),
+])
+def test_retries_only_errors_that_can_succeed(status, error, calls):
+    case, agent = short_case(), Failing(status)
+    with pytest.raises(error):
+        play_trial(case, get_mode("sighted"), agent, RuleDefender(case.challenger),
+                   api_attempts=3, api_backoff_s=0)
+    assert agent.calls == calls
 
 
 def test_run_suite_writes_scores_and_resumes(tmp_path):

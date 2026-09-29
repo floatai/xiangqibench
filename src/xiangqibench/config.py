@@ -123,6 +123,8 @@ class Config:
             raise ConfigError("model.name is required")
         if self.model.provider not in PROVIDERS:
             raise ConfigError(f"model.provider must be one of {PROVIDERS}")
+        if self.model.provider == "anthropic" and self.model.max_tokens is None:
+            raise ConfigError("the anthropic provider requires model.max_tokens")
         if self.defender.backend not in ("pikafish", "rule"):
             raise ConfigError("defender.backend must be 'pikafish' or 'rule'")
         unknown = set(self.budgets) - set(STANDARD_BUDGETS)

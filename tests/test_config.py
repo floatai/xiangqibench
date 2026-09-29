@@ -34,6 +34,24 @@ def test_unknown_keys_rejected():
         config_from_dict({"modle": {}})
 
 
+def test_anthropic_requires_max_tokens():
+    with pytest.raises(ConfigError, match="max_tokens"):
+        config_from_dict({"model": {"name": "m", "provider": "anthropic"}}).validate()
+    config_from_dict({"model": {"name": "m", "provider": "anthropic", "max_tokens": 64000}}).validate()
+
+
+def test_max_tokens_sent_only_when_set(monkeypatch):
+    from xiangqibench.config import ModelConfig
+    from xiangqibench.llm.providers import OpenAIChatAgent
+
+    monkeypatch.setenv("XQB_TEST_KEY", "sk-test")
+    messages = [{"role": "user", "content": "hi"}]
+    agent = OpenAIChatAgent(ModelConfig(name="m", api_key_env="XQB_TEST_KEY"))
+    assert "max_tokens" not in agent._kwargs(messages)
+    agent = OpenAIChatAgent(ModelConfig(name="m", api_key_env="XQB_TEST_KEY", max_tokens=100))
+    assert agent._kwargs(messages)["max_tokens"] == 100
+
+
 def test_standard_flag():
     cfg = config_from_dict({"model": "m"}).validate()
     assert cfg.is_standard

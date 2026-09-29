@@ -12,7 +12,7 @@ model:
   model: gpt-5.5                # model id sent to the API (defaults to name)
   api_key_env: OPENAI_API_KEY
   # base_url: https://openrouter.ai/api/v1     # any OpenAI-compatible endpoint
-  # max_tokens: 128000          # largest output length the endpoint accepts
+  # max_tokens: 128000          # sent only when set; required for anthropic
   # reasoning_effort: high      # sent only when set
   # temperature: 1.0            # sent only when set; endpoint default otherwise
   # extra_body: {}              # provider-specific request fields

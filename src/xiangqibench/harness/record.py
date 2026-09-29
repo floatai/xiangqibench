@@ -99,6 +99,14 @@ class GameRecord:
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
+    def count_api_call(self, player: str, usage: dict | None) -> None:
+        """Count one model call and its tokens, whether or not it yielded a command."""
+        self.total_api_calls += 1
+        if usage:
+            tokens = self.stats["total_tokens"].setdefault(player, {"prompt": 0, "completion": 0})
+            tokens["prompt"] += usage.get("prompt_tokens", 0) or 0
+            tokens["completion"] += usage.get("completion_tokens", 0) or 0
+
     def record_interaction(
         self,
         step: int,
@@ -110,7 +118,6 @@ class GameRecord:
         action_result: dict | None = None,
         messages_sent: list | None = None,
     ) -> None:
-        self.total_api_calls += 1
         entry = InteractionEntry(
             step=step,
             messages_sent_count=messages_count,
@@ -123,11 +130,6 @@ class GameRecord:
             action_result=action_result or {},
             messages_sent=messages_sent,
         )
-        if usage:
-            player = self._current_turn.player if self._current_turn else "unknown"
-            tokens = self.stats["total_tokens"].setdefault(player, {"prompt": 0, "completion": 0})
-            tokens["prompt"] += usage.get("prompt_tokens", 0) or 0
-            tokens["completion"] += usage.get("completion_tokens", 0) or 0
         if self._current_turn:
             self._current_turn.interactions.append(entry)
 

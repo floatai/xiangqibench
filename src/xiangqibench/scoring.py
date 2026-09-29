@@ -1,8 +1,8 @@
 """Trial classification and leaderboard metrics.
 
 A trial is ``pass`` if the agent delivers mate, ``fail`` if it loses, is
-mated, draws, forfeits by invalid moves or by never issuing a command, or
-reaches the ply cap, and ``None`` (no verdict, excluded) if it ended for an
+mated, draws, forfeits by invalid moves, by never issuing a command, or by
+exhausting a turn's action budget without moving, or reaches the ply cap, and ``None`` (no verdict, excluded) if it ended for an
 infrastructure reason. Per (model, setting, case) cell the earliest ``n``
 scored trials are used. pass@k is the unbiased estimator of Chen et al.
 (2021); pass^k = C(c, k) / C(n, k) is the probability that k draws without
@@ -21,8 +21,8 @@ from pathlib import Path
 
 import numpy as np
 
-LOSS_MARKERS = ("invalid_action_limit", "no_command", "no_tool_call")
-ABORT_MARKERS = ("api_error", "api_skipped", "action_budget", "aborted", "exception", "timeout")
+LOSS_MARKERS = ("invalid_action_limit", "no_command", "no_tool_call", "action_budget")
+ABORT_MARKERS = ("api_error", "api_skipped", "aborted", "exception", "timeout")
 N_BOOT = 4000
 BOOT_SEED = 2027
 

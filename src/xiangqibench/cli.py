@@ -152,11 +152,12 @@ def cmd_doctor(args) -> int:
         try:
             with PikafishEngine(path=path, depth=args.depth) as engine:
                 info = engine.info()
+                nnue_path = engine.nnue
                 case = load_cases()[0]
                 move = engine.best_move(case.fen)
             ok &= move is not None
             print(f"  {'[ok]  ' if move else '[FAIL]'} Pikafish {info['engine_id']} at {path}")
-            print(f"         nnue {info['nnue']} sha256={str(info['nnue_sha256'])[:16]}")
+            print(f"         nnue {nnue_path} sha256={str(info['nnue_sha256'])[:16]}")
             print(f"         {case.id}: bestmove {move} at depth {args.depth}")
         except EngineUnavailable as exc:
             ok = False
@@ -261,6 +262,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     from xiangqibench.defender import EngineUnavailable
+    from xiangqibench.runner import ApiUnusable
 
     args = build_parser().parse_args(argv)
     level = logging.WARNING - 10 * min(args.verbose + (args.command == "run"), 2)
@@ -269,7 +271,7 @@ def main(argv: list[str] | None = None) -> int:
         args.split = None
     try:
         return args.func(args)
-    except (ConfigError, KeyError) as exc:
+    except (ConfigError, KeyError, ApiUnusable) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     except EngineUnavailable as exc:
