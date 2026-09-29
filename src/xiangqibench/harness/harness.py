@@ -190,7 +190,7 @@ class GameHarness:
             move_played = (result.extra or {}).get("move")
 
         fen_after = self._game.get_fen()
-        in_check = self._game.is_in_check() if not self._game.is_game_over() else False
+        in_check = self._game.is_in_check()
         self._record.end_turn(move_played, fen_after, in_check,
                               int((time.time() - self._turn_start_time) * 1000))
 

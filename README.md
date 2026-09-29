@@ -32,7 +32,11 @@ export PIKAFISH_PATH=$PWD/Pikafish/src/pikafish
 xiangqibench doctor                       # checks the engine and prints its build and NNUE hash
 ```
 
-The paper used Pikafish commit `fd168f68` (depth 18, one thread, 256 MB hash).
+The paper's defender was Pikafish `fd168f68` with the network whose sha256 begins `a2f41d4d`,
+searched to depth 18 with one thread and a 256 MB hash. Upstream has since replaced that network,
+and older builds cannot load the new one, so build the current Pikafish as shown above. Its
+moves can differ from the paper's defender. Every record stores the engine build and the network
+hash.
 
 ## Usage
 

@@ -118,10 +118,7 @@ class PikafishDefender:
         legal = [cchess.pos2iccs(s, d) for s, d in board.create_moves()]
         if not legal:
             return DefenderChoice(move=None, backend=self.backend, legal_count=0)
-        try:
-            move = self.engine.best_move(fen)
-        except Exception:
-            move = None
+        move = self.engine.best_move(fen)
         if not move or move not in legal:
             return self._fallback.choose(fen)
         return DefenderChoice(move=move, backend=self.backend, legal_count=len(legal))

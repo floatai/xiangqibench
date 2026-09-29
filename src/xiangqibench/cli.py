@@ -154,7 +154,8 @@ def cmd_doctor(args) -> int:
                 info = engine.info()
                 case = load_cases()[0]
                 move = engine.best_move(case.fen)
-            print(f"  [ok]   Pikafish {info['engine_id']} at {path}")
+            ok &= move is not None
+            print(f"  {'[ok]  ' if move else '[FAIL]'} Pikafish {info['engine_id']} at {path}")
             print(f"         nnue {info['nnue']} sha256={str(info['nnue_sha256'])[:16]}")
             print(f"         {case.id}: bestmove {move} at depth {args.depth}")
         except EngineUnavailable as exc:

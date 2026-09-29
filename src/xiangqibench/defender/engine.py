@@ -8,6 +8,8 @@ Composed endgames (排局) may place pieces on squares unreachable in play, e.g.
 a pawn behind its starting rank. Pikafish treats such a position as a fatal
 error and exits; :meth:`PikafishEngine.analyse` detects this, restarts the
 engine, and raises :class:`UnsupportedPosition` so the caller can fall back.
+Any other engine failure raises :class:`EngineUnavailable`, so a broken engine
+stops the run instead of silently handing every move to the fallback.
 """
 
 from __future__ import annotations
@@ -89,6 +91,11 @@ def locate_nnue(engine_path: str, nnue: str | None = None) -> str | None:
     return str(sibling) if sibling.exists() else None
 
 
+def _engine_error(lines: list[str]) -> str:
+    errors = [line.removeprefix("info string ") for line in lines if "ERROR" in line]
+    return " ".join(errors) or "no output"
+
+
 def file_sha256(path: str | None) -> str | None:
     if not path or not os.path.exists(path):
         return None
@@ -153,6 +160,14 @@ class PikafishEngine:
         if not any("readyok" in line for line in self._read_until("readyok")):
             self.close()
             raise EngineUnavailable(f"{self.engine_path} did not answer readyok")
+        # The network is loaded lazily on the first search, and a network that does
+        # not match the binary makes Pikafish exit there, so probe with one search.
+        self._send("position startpos")
+        self._send("go depth 1")
+        lines = self._read_until("bestmove")
+        if not any(line.startswith("bestmove") for line in lines):
+            self.close()
+            raise EngineUnavailable(f"{self.engine_path} failed a test search: {_engine_error(lines)}")
 
     def _send(self, cmd: str) -> None:
         proc = self._process
@@ -231,7 +246,8 @@ class PikafishEngine:
             return self._analyse_locked(fen, self.depth if depth is None else depth)
 
     def _analyse_locked(self, fen: str, depth: int) -> Analysis:
-        if not self._process:
+        if self._process is None or self._process.poll() is not None:
+            self.close()
             self._start()
         fen_norm = normalize_fen(fen)
         self._send("ucinewgame")
@@ -247,6 +263,9 @@ class PikafishEngine:
             raise UnsupportedPosition(f"engine rejected position: {fen_norm}")
         self._send(f"go depth {depth}")
         lines = self._read_until("bestmove", timeout=max(60.0, depth * 8.0))
+        if not any(line.startswith("bestmove") for line in lines):
+            self.close()
+            raise EngineUnavailable(f"engine exited during search: {_engine_error(lines)}")
 
         result = Analysis(bestmove=None, score_mate=None, score_cp=None)
         for line in lines:

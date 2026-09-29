@@ -17,8 +17,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
@@ -36,8 +36,8 @@ jobs:
           - os: macos-latest
             python: "3.12"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
       - run: pip install -e ".[dev,anthropic]"
@@ -45,24 +45,27 @@ jobs:
 
   engine:
     runs-on: ubuntu-latest
-    env:
-      PIKAFISH_REF: fd168f680e6f3501d1fe874ffb39c388af6923e6
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - uses: actions/cache@v4
+      # Upstream publishes only the network for its latest code, so CI tracks master.
+      - name: Resolve Pikafish master
+        id: ref
+        run: echo "sha=$(git ls-remote https://github.com/official-pikafish/Pikafish refs/heads/master | cut -f1)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
         id: pikafish
         with:
           path: ~/pikafish
-          key: pikafish-${{ runner.os }}-${{ env.PIKAFISH_REF }}
+          key: pikafish-${{ runner.os }}-clang-${{ steps.ref.outputs.sha }}
       - name: Build Pikafish
         if: steps.pikafish.outputs.cache-hit != 'true'
         run: |
           git clone https://github.com/official-pikafish/Pikafish /tmp/Pikafish
-          git -C /tmp/Pikafish checkout "$PIKAFISH_REF"
-          make -C /tmp/Pikafish/src -j"$(nproc)" build ARCH=x86-64-avx2
+          git -C /tmp/Pikafish checkout "${{ steps.ref.outputs.sha }}"
+          make -C /tmp/Pikafish/src -j"$(nproc)" build ARCH=x86-64-avx2 COMP=clang
           mkdir -p ~/pikafish
           cp /tmp/Pikafish/src/pikafish /tmp/Pikafish/src/pikafish.nnue ~/pikafish/
       - run: pip install -e ".[dev]"
@@ -72,8 +75,8 @@ jobs:
   package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install build twine
@@ -88,7 +91,7 @@ jobs:
           /tmp/wheel-env/bin/xiangqibench modes
           /tmp/wheel-env/bin/xiangqibench cases | tail -1
           /tmp/wheel-env/bin/xiangqibench prompt --mode restricted > /dev/null
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/

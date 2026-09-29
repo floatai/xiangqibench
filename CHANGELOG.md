@@ -41,7 +41,11 @@ The effect of each fix on the paper's analyses is described in the paper.
 
 - **Check flag.** Feedback used to report `Check: No` after every move, including checking and
   mating moves, and mates were labelled `stalemate`. The flag is now computed on the position
-  after the move, and mates are labelled `checkmate`. Winners were never affected.
+  after the move, and mates are labelled `checkmate`. The trajectory's `in_check` is also set on
+  the final, game-ending move. Winners were never affected.
+- **Engine failures.** An engine that failed during search, for example on a network it cannot
+  load, silently handed every defender move to the rule fallback. It now stops the run with an
+  error, and only positions the engine rejects use the fallback.
 - **Repetition.** A threefold repetition in which one side checked on every one of its moves now
   loses for that side (perpetual check) instead of being a draw.
 - **Forfeit move list.** Forfeit turns appended a copy of the previous move to `moves`, so

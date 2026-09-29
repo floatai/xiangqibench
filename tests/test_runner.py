@@ -4,10 +4,11 @@ import json
 import re
 
 import cchess
+import pytest
 
 from xiangqibench.cases import load_cases
 from xiangqibench.config import config_from_dict
-from xiangqibench.defender import RuleDefender
+from xiangqibench.defender import EngineUnavailable, PikafishDefender, RuleDefender
 from xiangqibench.defender.search import best_winning_move
 from xiangqibench.llm import Completion
 from xiangqibench.modes import get_mode
@@ -48,7 +49,28 @@ def test_mate_agent_wins_and_defender_source_is_recorded():
     assert summary.plies == 3 and summary.matched_first_move
     house = [t for t in record["trajectory"] if t["player"] != case.challenger]
     assert house and all(t["defender_backend"] == "rule" for t in house)
+    assert record["trajectory"][-1]["in_check"]
     assert record["moves"] == [t["move_played"] for t in record["trajectory"]]
+
+
+class _Engine:
+    """Stands in for PikafishEngine; ``best_move`` returns or raises ``result``."""
+
+    def __init__(self, result):
+        self.result = result
+
+    def best_move(self, fen):
+        if isinstance(self.result, Exception):
+            raise self.result
+        return self.result
+
+
+def test_pikafish_defender_falls_back_only_for_rejected_positions():
+    fen = "3k1pC2/4P4/9/9/7CR/3n4c/2Pn5/8B/5p3/4K4 b"
+    rejected = PikafishDefender("red", _Engine(None)).choose(fen)
+    assert rejected.backend == "rule" and rejected.move is not None
+    with pytest.raises(EngineUnavailable):
+        PikafishDefender("red", _Engine(EngineUnavailable("dead"))).choose(fen)
 
 
 def test_no_command_forfeits_after_five_replies():
