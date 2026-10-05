@@ -42,6 +42,7 @@ xiangqibench = "xiangqibench.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/floatai/xiangqibench"
+Paper = "https://arxiv.org/abs/2610.02425"
 Repository = "https://github.com/floatai/xiangqibench"
 Issues = "https://github.com/floatai/xiangqibench/issues"
 Changelog = "https://github.com/floatai/xiangqibench/blob/main/CHANGELOG.md"

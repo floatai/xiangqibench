@@ -3,7 +3,12 @@ message: "If you use XiangqiBench, please cite the paper below."
 title: "XiangqiBench"
 type: software
 authors:
-  - name: "XiangqiBench authors"
+  - family-names: "Chai"
+    given-names: "Yekun"
+  - family-names: "Peng"
+    given-names: "Qiwei"
+  - family-names: "Xiong"
+    given-names: "Haoyi"
 version: 0.1.0
 date-released: 2026-09-26
 license: MIT
@@ -17,6 +22,15 @@ preferred-citation:
   type: article
   title: "Finding the Move Is Not Winning the Game: XiangqiBench for Closed-Loop Evaluation of LLM Agents"
   authors:
-    - name: "XiangqiBench authors"
+    - family-names: "Chai"
+      given-names: "Yekun"
+    - family-names: "Peng"
+      given-names: "Qiwei"
+    - family-names: "Xiong"
+      given-names: "Haoyi"
   year: 2026
-  url: "https://github.com/floatai/xiangqibench"
+  journal: "arXiv preprint arXiv:2610.02425"
+  url: "https://arxiv.org/abs/2610.02425"
+  identifiers:
+    - type: other
+      value: "arXiv:2610.02425"

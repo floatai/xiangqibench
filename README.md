@@ -112,12 +112,15 @@ pip install -e ".[dev]" && pytest
 ## Citation
 
 ```bibtex
-@article{xiangqibench2026,
-  title   = {Finding the Move Is Not Winning the Game: {XiangqiBench} for Closed-Loop
-             Evaluation of {LLM} Agents},
-  author  = {XiangqiBench authors},
-  year    = {2026},
-  url     = {https://github.com/floatai/xiangqibench}
+@misc{chai2026xiangqibench,
+  title         = {Finding the Move Is Not Winning the Game: {XiangqiBench} for Closed-Loop
+                   Evaluation of {LLM} Agents},
+  author        = {Yekun Chai and Qiwei Peng and Haoyi Xiong},
+  year          = {2026},
+  eprint        = {2610.02425},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  url           = {https://arxiv.org/abs/2610.02425}
 }
 ```
 
@@ -127,4 +130,4 @@ The code is released under the [MIT License](LICENSE). The historical positions 
 public domain. Pikafish is licensed under GPL-3.0; it is not distributed with this package and
 runs as a separate process.
 
-[paper]: https://arxiv.org/abs/XXXX.XXXXX
+[paper]: https://arxiv.org/abs/2610.02425
