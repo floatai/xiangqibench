@@ -9,8 +9,8 @@ authors:
     given-names: "Qiwei"
   - family-names: "Xiong"
     given-names: "Haoyi"
-version: 0.1.0
-date-released: 2026-09-26
+version: 0.1.1
+date-released: 2026-10-05
 license: MIT
 repository-code: "https://github.com/floatai/xiangqibench"
 keywords:

@@ -4,7 +4,12 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.1.1] — 2026-10-05
+
+### Added
+
+- Links to the paper, [arXiv:2610.02425](https://arxiv.org/abs/2610.02425), in the README,
+  `CITATION.cff`, and the package metadata.
 
 ### Changed
 
@@ -72,4 +77,5 @@ The effect of each fix on the paper's analyses is described in the paper.
 - **Record size.** Per-call prompt snapshots are off by default. The full message history is
   still stored once per trial.
 
+[0.1.1]: https://github.com/floatai/xiangqibench/releases/tag/v0.1.1
 [0.1.0]: https://github.com/floatai/xiangqibench/releases/tag/v0.1.0

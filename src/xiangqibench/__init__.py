@@ -1,6 +1,6 @@
 """XiangqiBench: tool-grounded xiangqi endgames for evaluating LLM agents."""
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from xiangqibench.cases import EndgameCase, load_cases
 from xiangqibench.config import Config, load_config
